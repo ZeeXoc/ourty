@@ -1,13 +1,15 @@
-import React, {Component, useEffect,useCallback, useMemo, useState} from 'react'
-import {createEditor, Editor, Transforms,Text} from 'slate'
+import React, {Component, useEffect, useCallback, useMemo, useState} from 'react'
+import {createEditor, Editor, Transforms, Text} from 'slate'
 import {Slate, Editable, withReact} from 'slate-react'
+
+import ToolBar from "./operate/ToolBar";
 
 const App = () => {
     const editor = useMemo(() => withReact(createEditor()), [])
     const [value, setValue] = useState([
         {
             type: 'paragraph',
-            children: [{ text: 'A line of text in a paragraph.' }],
+            children: [{text: 'A line of text in a paragraph.'}],
         },
     ])
 
@@ -26,43 +28,47 @@ const App = () => {
     }, [])
 
     return (
-        <Slate editor={editor} value={value} onChange={value => setValue(value)}>
-            <Editable
-                renderElement={renderElement}
-                // Pass in the `renderLeaf` function.
-                renderLeaf={renderLeaf}
-                onKeyDown={event => {
-                    if (!event.ctrlKey) {
-                        return
-                    }
-
-                    switch (event.key) {
-                        case '`': {
-                            event.preventDefault()
-                            const [match] = Editor.nodes(editor, {
-                                match: n => n.type === 'code',
-                            })
-                            Transforms.setNodes(
-                                editor,
-                                { type: match ? null : 'code' },
-                                { match: n => Editor.isBlock(editor, n) }
-                            )
-                            break
+        <div>
+            <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+                <ToolBar editor={editor} value={value}/>
+                <Editable
+                    renderElement={renderElement}
+                    // Pass in the `renderLeaf` function.
+                    renderLeaf={renderLeaf}
+                    onKeyDown={event => {
+                        if (!event.ctrlKey) {
+                            return
                         }
 
-                        case 'b': {
-                            event.preventDefault()
-                            Transforms.setNodes(
-                                editor,
-                                { bold: true },
-                                { match: n => Text.isText(n), split: true }
-                            )
-                            break
+                        switch (event.key) {
+                            case '`': {
+                                event.preventDefault()
+                                const [match] = Editor.nodes(editor, {
+                                    match: n => n.type === 'code',
+                                })
+                                Transforms.setNodes(
+                                    editor,
+                                    {type: match ? null : 'code'},
+                                    {match: n => Editor.isBlock(editor, n)}
+                                )
+                                break
+                            }
+
+                            case 'b': {
+                                event.preventDefault()
+                                Transforms.setNodes(
+                                    editor,
+                                    {bold: true},
+                                    {match: n => Text.isText(n), split: true}
+                                )
+                                break
+                            }
                         }
-                    }
-                }}
-            />
-        </Slate>
+                    }}
+                />
+            </Slate>
+
+        </div>
     )
 }
 
@@ -70,7 +76,7 @@ const Leaf = props => {
     return (
         <span
             {...props.attributes}
-            style={{ fontWeight: props.leaf.bold ? 'bold' : 'normal' }}
+            style={{fontWeight: props.leaf.bold ? 'bold' : 'normal'}}
         >
       {props.children}
     </span>
