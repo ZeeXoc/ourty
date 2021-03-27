@@ -2,7 +2,10 @@ import React, {Component, useEffect, useCallback, useMemo, useState} from 'react
 import {createEditor, Editor, Transforms, Text} from 'slate'
 import {Slate, Editable, withReact} from 'slate-react'
 
+import {Leaf} from './operate/CustomEditor'
 import ToolBar from "./operate/ToolBar";
+
+import Renderer from "./wikidot/renderer";
 
 const App = () => {
     const editor = useMemo(() => withReact(createEditor()), [])
@@ -12,6 +15,8 @@ const App = () => {
             children: [{text: 'A line of text in a paragraph.'}],
         },
     ])
+
+    console.log(value,editor)
 
     const renderElement = useCallback(props => {
         switch (props.element.type) {
@@ -32,54 +37,15 @@ const App = () => {
             <Slate editor={editor} value={value} onChange={value => setValue(value)}>
                 <ToolBar editor={editor} value={value}/>
                 <Editable
+                    id='rich-edit-area'
                     renderElement={renderElement}
                     // Pass in the `renderLeaf` function.
                     renderLeaf={renderLeaf}
-                    onKeyDown={event => {
-                        if (!event.ctrlKey) {
-                            return
-                        }
-
-                        switch (event.key) {
-                            case '`': {
-                                event.preventDefault()
-                                const [match] = Editor.nodes(editor, {
-                                    match: n => n.type === 'code',
-                                })
-                                Transforms.setNodes(
-                                    editor,
-                                    {type: match ? null : 'code'},
-                                    {match: n => Editor.isBlock(editor, n)}
-                                )
-                                break
-                            }
-
-                            case 'b': {
-                                event.preventDefault()
-                                Transforms.setNodes(
-                                    editor,
-                                    {bold: true},
-                                    {match: n => Text.isText(n), split: true}
-                                )
-                                break
-                            }
-                        }
-                    }}
+                    /* TODO onKeyDown={} */
                 />
             </Slate>
-
+            {/*<Renderer editor={editor} value={value}/>*/}
         </div>
-    )
-}
-
-const Leaf = props => {
-    return (
-        <span
-            {...props.attributes}
-            style={{fontWeight: props.leaf.bold ? 'bold' : 'normal'}}
-        >
-      {props.children}
-    </span>
     )
 }
 
